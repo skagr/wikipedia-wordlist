@@ -29,14 +29,14 @@ def main(url):
                 text = re.sub(r'<.*?>', ' ', text)  # remove tags
                 text = re.sub(r'[^0-9a-zA-Z]+', ' ', text)  # remove non-word characters
                 text = text.lstrip()
-                new_words = [w for w in text.split() if re.search(r'0-9a-zA-Z', w)]
+                new_words = [w for w in text.split() if re.search(r'[a-zA-Z]', w)]
                 words = words.union(set(new_words))
                 print(f'chunks: {chunks}\twords found: {len(words)}\ttext: {text[:60]}')
                 lasttext = text
                 text = ''
 
-            if chunks > 10:
-                break
+#            if chunks > 10:
+#                break
 
     with open(local_filename, 'w') as f:
         for w in sorted(words):
