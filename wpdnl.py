@@ -22,7 +22,8 @@ def main(url):
             text = ' '.join([text, data.decode('utf-8')])
             if text and re.search(r'[^\w]', text[-1]):  # Don't break on word character
 #                print(f'text: {text[:90]}')
-                text = re.sub(r'http.*\s', ' ', text)  # remove URLs
+                text = re.sub(r'<.*?>', ' ', text)  # remove tags
+#                text = re.sub(r'http.*\s', ' ', text)  # remove URLs
                 text = re.sub(r'[^\w]+', ' ', text)  # remove non-word characters
                 text = text.lstrip()
                 new_words = [w for w in text.split() if re.search(r'\w', w)]
