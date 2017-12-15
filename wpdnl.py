@@ -17,22 +17,26 @@ def main(url):
         if chunk: # filter out keep-alive new chunks
             chunks += 1
             data = decompressor.decompress(chunk) 
+            #print(f'\n====================\n{data}')
             #soup = BeautifulSoup(data, 'xml')
             #text = soup.get_text()
-            text = ' '.join([text, data.decode('utf-8')])
-            if text and re.search(r'[^\w]', text[-1]):  # Don't break on word character
-#                print(f'text: {text[:90]}')
+            try:
+                text = ' '.join([text, data.decode('utf-8')])
+            except UnicodeDecodeError:
+                pass
+
+            if text and re.search(r'[^0-9a-zA-Z]', text[-1]):  # Don't break on word character
                 text = re.sub(r'<.*?>', ' ', text)  # remove tags
-#                text = re.sub(r'http.*\s', ' ', text)  # remove URLs
-                text = re.sub(r'[^\w]+', ' ', text)  # remove non-word characters
+                text = re.sub(r'[^0-9a-zA-Z]+', ' ', text)  # remove non-word characters
                 text = text.lstrip()
-                new_words = [w for w in text.split() if re.search(r'\w', w)]
+                new_words = [w for w in text.split() if re.search(r'0-9a-zA-Z', w)]
                 words = words.union(set(new_words))
                 print(f'chunks: {chunks}\twords found: {len(words)}\ttext: {text[:60]}')
+                lasttext = text
                 text = ''
 
-#            if chunks > 10:
-#                break
+            if chunks > 10:
+                break
 
     with open(local_filename, 'w') as f:
         for w in sorted(words):
