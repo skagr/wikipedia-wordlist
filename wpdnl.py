@@ -17,8 +17,9 @@ def main(url, mode=None):
     re_url = re.compile(r'http[^ ]*')
     re_html_ent = re.compile(r'\&[a-z]+\;')
     re_non_word = re.compile(r'[^0-9a-zA-ZÀ-ÿ]+')
-    data_filename = url.split('/')[-1] + '.data'
-    words_filename = url.split('/')[-1] + '.txt'
+
+    data_filename = url.split('/')[-1].split('.')[0] + '.data'
+    words_filename = url.split('/')[-1].split('.')[0] + '.wordlist'
 
     def get_words(text):
 
@@ -42,7 +43,7 @@ def main(url, mode=None):
     def show_progress(c, w, t, done=False):
         text = t.lstrip()
         if text or done:
-            print(f'chunks: {c}\twords: {len(w)}\ttext: {text[:60]}')
+            print(f'chunks: {c:,}\twords: {len(w):,}\ttext: {text[:60]}...')
 
     words = set()
     chunks = 0
@@ -61,11 +62,10 @@ def main(url, mode=None):
             chunks += 1
             data = decompressor.decompress(chunk)
 
-            # try:
-            #     text = ' '.join([text, data.decode('utf-8')])
-            # except UnicodeDecodeError:
-            #     pass
-            text = ' '.join([text, data.decode('utf-8')])
+            try:
+                text = ' '.join([text, data.decode('utf-8')])
+            except UnicodeDecodeError:
+                pass
 
             # Don't break on word character or open bracket
             if text and re.search(re_breaking_char, text) \
