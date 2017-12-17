@@ -1,7 +1,7 @@
 """Download Wikipedia archive and save unique words in plain text"""
 # from bs4 import BeautifulSoup
 import bz2
-# import os
+import os
 import requests
 import re
 
@@ -14,13 +14,23 @@ def main(url, mode=None):
     re_open_angle_b = re.compile(r'<[^>]*$')
     re_tag = re.compile(r'<.*?>')
     re_tag_bestand = re.compile(r'\[\[Bestand:.*?\]\]')
+    re_url = re.compile(r'http[^ ]*')
+    re_html_ent = re.compile(r'\&[a-z]+\;')
     re_non_word = re.compile(r'[^0-9a-zA-ZÀ-ÿ]+')
     data_filename = url.split('/')[-1] + '.data'
     words_filename = url.split('/')[-1] + '.txt'
 
     def get_words(text):
-        t = re.sub(re_tag, ' ', text)
+
+        # if (mode == 'DEBUG') and ('ACfU3U1TkEpCpPIKHqumJoAl0KLvY8VB' in text):
+        #     with open('test.txt', 'w') as f:
+        #         f.write(text)
+
+        t = text  # copy
+        t = re.sub(re_url, ' ', t)
+        t = re.sub(re_tag, ' ', t)
         t = re.sub(re_tag_bestand, ' ', t)
+        t = re.sub(re_html_ent, ' ', t)
         t = re.sub(re_non_word, ' ', t)
         t = t.lstrip()
         return set(
@@ -40,15 +50,22 @@ def main(url, mode=None):
     decompressor = bz2.BZ2Decompressor()
     r = requests.get(url, stream=True)
 
+    if mode == 'DEBUG':
+        try:
+            os.remove(data_filename)
+        except FileNotFoundError:
+            pass
+
     for chunk in r.iter_content(chunk_size=4096):
         if chunk:  # filter out keep-alive new chunks
             chunks += 1
             data = decompressor.decompress(chunk)
 
-            try:
-                text = ' '.join([text, data.decode('utf-8')])
-            except UnicodeDecodeError:
-                pass
+            # try:
+            #     text = ' '.join([text, data.decode('utf-8')])
+            # except UnicodeDecodeError:
+            #     pass
+            text = ' '.join([text, data.decode('utf-8')])
 
             # Don't break on word character or open bracket
             if text and re.search(re_breaking_char, text) \
@@ -63,7 +80,7 @@ def main(url, mode=None):
             if mode == 'DEBUG':
                 with open(data_filename, 'ab') as f:
                     f.write(data)
-                if chunks > 99:
+                if chunks > 999:
                     break
 
     words = get_words(text).union(words)
